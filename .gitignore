@@ -138,14 +138,8 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
-# Pyre type checker
-.pyre/
-/make_dataset.py
-/README_AUTHOR.md
-/README_CBX.md
-/siamese.png
-/test.py
-/vgg.png
-/viz.py
-/viz - Copy.py
-/img/
+/img/IP-FSL_test_17_way/
+/img/test_d0_dataset/
+/img/test_local_dataset_10_way/
+/img/test_local_dataset_12_way/
+/img/training_set_60classes_each_has_20_pics/
