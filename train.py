@@ -25,11 +25,11 @@ if __name__ == "__main__":
     # ----------------------------------------------------#
     #   数据集存放的路径
     # ----------------------------------------------------#
-    dataset_path = "datasets"
+    dataset_path = "train_set/d0"
     # ----------------------------------------------------#
     #   输入图像的大小，默认为105,105,3
     # ----------------------------------------------------#
-    input_shape = [105, 105]
+    input_shape = [200, 200]
     # ----------------------------------------------------#
     #   当训练Omniglot数据集时设置为False
     #   当训练自己的数据集时设置为True
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     #   网络一般不从0开始训练，至少会使用主干部分的权值，有些论文提到可以不用预训练，主要原因是他们数据集较大 且 调参能力优秀。
     #   如果一定要训练网络的主干部分，可以了解imagenet数据集，首先训练分类模型，分类模型的 主干部分 和该模型通用，基于此进行训练。
     # ----------------------------------------------------------------------------------------------------------------------------#
-    model_path = "model_data/vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5"
+    model_path = "model_data/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5"
 
     # ----------------------------------------------------------------------------------------------------------------------------#
     #   显存不足与数据集大小无关，提示显存不足请调小batch_size。
@@ -80,8 +80,8 @@ if __name__ == "__main__":
     #   batch_size      每次输入的图片数量
     # ------------------------------------------------------#
     Init_Epoch = 0
-    Epoch = 30
-    batch_size = 32
+    Epoch = 200
+    batch_size = 8
 
     # ------------------------------------------------------------------#
     #   其它训练参数：学习率、优化器、学习率下降有关
@@ -100,7 +100,7 @@ if __name__ == "__main__":
     #                   当使用SGD优化器时建议设置   Init_lr=1e-2
     #   momentum        优化器内部使用到的momentum参数
     # ------------------------------------------------------------------#
-    optimizer_type = "adam"
+    optimizer_type = "sgd"
     momentum = 0.9
     # ------------------------------------------------------------------#
     #   lr_decay_type   使用到的学习率下降方式，可选的有'step'、'cos'
@@ -203,6 +203,9 @@ if __name__ == "__main__":
         if epoch_step == 0 or epoch_step_val == 0:
             raise ValueError('数据集过小，无法进行训练，请扩充数据集。')
 
+        time_str = datetime.datetime.strftime(datetime.datetime.now(), '%Y_%m_%d_%H_%M_%S')
+        log_dir = os.path.join(save_dir, "train_" + str(time_str))
+
         train_dataset = Datasets(input_shape, train_lines, train_labels, batch_size, True)
         val_dataset = Datasets(input_shape, val_lines, val_labels, batch_size, False)
 
@@ -213,10 +216,29 @@ if __name__ == "__main__":
         #   lr_scheduler       用于设置学习率下降的方式
         #   early_stopping  用于设定早停，val_loss多次不下降自动结束训练，表示模型基本收敛
         # -------------------------------------------------------------------------------#
-        time_str = datetime.datetime.strftime(datetime.datetime.now(), '%Y_%m_%d_%H_%M_%S')
-        log_dir = os.path.join(save_dir, "loss_" + str(time_str))
+
         logging = TensorBoard(log_dir)
         loss_history = LossHistory(log_dir)
+
+        log_file_path = os.path.join(log_dir, "configuration.txt")
+
+        with open(log_file_path, 'w', encoding='utf-8') as file:
+            file.write(f"date:{datetime.datetime.now()}\n\n")
+            file.write(f"dataset_path:{dataset_path}\n\n")
+            file.write(f"input_shape:{input_shape}\n\n")
+            file.write(f"train_own_data:{train_own_data}\n\n")
+            file.write(f"model_path:{model_path}\n\n")
+            file.write(f"Init_Epoch:{Init_Epoch}\n\n")
+            file.write(f"Epoch:{Epoch}\n\n")
+            file.write(f"batch_size:{batch_size}\n\n")
+            file.write(f"Init_lr:{Init_lr}\n\n")
+            file.write(f"optimizer_type:{optimizer_type}\n\n")
+            file.write(f"momentum:{momentum}\n\n")
+            file.write(f"lr_decay_type:{lr_decay_type}\n\n")
+            file.write(f"train_ratio:{train_ratio}\n\n")
+            file.write(f"num_train:{num_train}\n\n")
+            file.write(f"num_val:{num_val}\n\n")
+
         if ngpus_per_node > 1:
             checkpoint = ParallelModelCheckpoint(model_body, os.path.join(log_dir,
                                                                           "ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5"),
