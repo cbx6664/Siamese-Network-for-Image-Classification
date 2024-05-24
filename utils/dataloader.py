@@ -76,13 +76,9 @@ class Datasets(keras.utils.Sequence):
 
             image_indexes = random.sample(range(0, len(selected_path)), 1)
             batch_images_path.append(selected_path[image_indexes[0]])
-            # print("********************************************************************")
-            # # print('batch_path:',batch_images_path)
-            # print('batch_path_count:', len(batch_images_path))
 
 
         images, labels = self._convert_path_list_to_images_and_labels(batch_images_path)
-
 
         return images, labels
 
@@ -97,6 +93,19 @@ class Datasets(keras.utils.Sequence):
         # -------------------------------------------#
         pairs_of_images = [np.zeros((number_of_pairs, self.input_shape[0], self.input_shape[1], 3)) for i in range(2)]
         labels = np.zeros((number_of_pairs, 1))
+
+
+        # # 保存增强后图片的文件夹，取消注释即可使用
+        # save_dir = "training_process"  # 保存目录
+        # if not os.path.exists(save_dir):
+        #     os.mkdir(save_dir)
+        #
+        # # 记录path_list，两张图片是一对，一对同类的，一对不同类的，若batch_size=8，则要有8对同类，8对不同类的，共32张图片
+        # log_file_name = os.path.join(save_dir, 'path_list.txt')
+        # with open(log_file_name, 'w', encoding='utf-8') as log_file:
+        #     # 遍历列表，逐个写入元素，每个元素后面跟一个换行符
+        #     for item in path_list:
+        #         log_file.write(f'{item}\n')
 
         # -------------------------------------------#
         #   对图片对进行循环
@@ -120,6 +129,11 @@ class Datasets(keras.utils.Sequence):
             image = preprocess_input(np.array(image).astype(np.float32))
             pairs_of_images[0][pair, :, :, :] = image
 
+            # # 保存增强后的图片，取消注释即可使用
+            # file_name = os.path.join(save_dir, f'{os.path.basename(path_list[pair * 2])}.png')
+            # augmented_image = Image.fromarray(np.uint8(image * 255))
+            # augmented_image.save(file_name)
+
             # -------------------------------------------#
             #   将图片填充到输入2中
             # -------------------------------------------#
@@ -137,26 +151,15 @@ class Datasets(keras.utils.Sequence):
             image = preprocess_input(np.array(image).astype(np.float32))
             pairs_of_images[1][pair, :, :, :] = image
 
-            # # 输出training增强后的图片
-            # save_dir = 'training process'  # 保存目录
-            # if not os.path.exists(save_dir):
-            #     os.mkdir(save_dir)
-            #
-            # # 读取当前目录中已有的文件数量，并为保存的文件自动生成编号
-            # num_files = len(os.listdir(save_dir))
-            # file_name = os.path.join(save_dir, f'{num_files + 1:08d}.png')
-            #
-            # # 将numpy数组转为图像并保存到文件
-            # img = Image.fromarray(np.uint8(image * 255))
-            # img.save(file_name)
+            # # 保存增强后的图片，取消注释即可使用
+            # file_name = os.path.join(save_dir, f'{os.path.basename(path_list[pair * 2 + 1])}.png')
+            # augmented_image = Image.fromarray(np.uint8(image * 255))
+            # augmented_image.save(file_name)
 
             if (pair + 1) % 2 == 0:
                 labels[pair] = 0
             else:
                 labels[pair] = 1
-
-
-
 
         # -------------------------------------------#
         #   随机的排列组合
@@ -165,7 +168,6 @@ class Datasets(keras.utils.Sequence):
         labels = labels[random_permutation]
         pairs_of_images[0][:, :, :, :] = pairs_of_images[0][random_permutation, :, :, :]
         pairs_of_images[1][:, :, :, :] = pairs_of_images[1][random_permutation, :, :, :]
-
 
         return pairs_of_images, labels
 
