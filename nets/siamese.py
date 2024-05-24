@@ -2,6 +2,7 @@ import keras.backend as K
 from keras.layers import Dense, Input, Lambda
 from keras.models import Model
 
+from nets.resnet import myResNet50
 from nets.vgg import VGG16
 
 
@@ -12,7 +13,8 @@ def siamese(input_shape):
     #------------------------------------------#
     #   定义VGG16模型
     #------------------------------------------#
-    vgg_model = VGG16()
+    # vgg_model = VGG16()
+    resnet_model = myResNet50()
     #------------------------------------------#
     #   输入是两个图片
     #   input_image_1 : 105, 105, 3
@@ -26,8 +28,10 @@ def siamese(input_shape):
     #   encoded_image_1 : 105, 105, 3 -> 4608
     #   encoded_image_2 : 105, 105, 3 -> 4608
     #------------------------------------------#
-    encoded_image_1 = vgg_model.call(input_image_1)
-    encoded_image_2 = vgg_model.call(input_image_2)
+    # encoded_image_1 = vgg_model.call(input_image_1)
+    # encoded_image_2 = vgg_model.call(input_image_2)
+    encoded_image_1 = resnet_model.call(input_image_1)
+    encoded_image_2 = resnet_model.call(input_image_2)
 
     #------------------------------------------#
     #   相减取绝对值，此处算的是l1距离
@@ -37,11 +41,11 @@ def siamese(input_shape):
     #------------------------------------------#
     #   进行两次全连接
     #------------------------------------------#
-    out = Dense(512, activation = 'relu')(l1_distance)
+    out = Dense(512, activation='relu')(l1_distance)
     #------------------------------------------#
     #   利用sigmoid函数将最后的值固定在0-1之间。
     #------------------------------------------#
-    out = Dense(1, activation = 'sigmoid')(out)
+    out = Dense(1, activation='sigmoid')(out)
 
     model = Model([input_image_1, input_image_2], out)
     return model
