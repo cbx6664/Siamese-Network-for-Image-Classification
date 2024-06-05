@@ -1,106 +1,49 @@
-## Siamese：孪生神经网络在Keras当中的实现
----
+#  Siamese Network在图像分类上的应用
 
-## 目录
-1. [仓库更新 Top News](#仓库更新)
-2. [注意事项 Attention](#注意事项)
-3. [所需环境 Environment](#所需环境)
-4. [文件下载 Download](#文件下载)
-5. [预测步骤 How2predict](#预测步骤)
-6. [训练步骤 How2train](#训练步骤)
-7. [参考资料 Reference](#Reference)
+ 本仓库基于[bubbliiiing/Siamese-keras: 这是一个孪生神经网络（Siamese network）的库，可进行图片的相似性比较。 (github.com)](https://github.com/bubbliiiing/Siamese-keras)改造而成。
 
-## Top News
-**`2022-04`**:**进行了大幅度的更新，支持step、cos学习率下降法、支持adam、sgd优化器选择、支持学习率根据batch_size自适应调整。**  
-BiliBili视频中的原仓库地址为：https://github.com/bubbliiiing/siamese-keras/tree/bilibili
+在原来的基础上，本仓库新增了以下功能：
 
-## 注意事项
-**训练Omniglot数据集和训练自己的数据集可以采用两种不同的格式**。需要注意格式的摆放噢！  
+1. backbone新增了ResNet50，nets/resnet.py（原仓库仅有VGG16）
 
-该仓库实现了孪生神经网络（Siamese network），该网络常常用于检测输入进来的两张图片的相似性。该仓库所使用的主干特征提取网络（backbone）为VGG16。  
+2. 新增了数据集处理函数make_dataset.py，使用时确保二级目录“class1”、“class2”... 内包含各自类别的图像，且二级目录名已改为对应类别的名字
 
-## 所需环境
-tensorflow-gpu==1.13.1  
-keras==2.1.5  
+   ```plaintext
+   dataset/
+   ├── class1/
+   │   ├── img1.jpg
+   │   ├── img2.jpg
+   │   ├── img3.jpg
+   ├── class2/
+   │   ├── img1.jpg
+   │   ├── img2.jpg
+   │   ├── img3.jpg
+   └── class3/
+   |    ├── img1.jpg
+   |    ├── img2.jpg
+   |    ├── img3.jpg
+   ...
+   ```
 
-## 文件下载
-训练所需的权值可在百度网盘中下载。    
-链接: https://pan.baidu.com/s/19Q8b_zQtyj7mORvHba45WA 提取码: 2gij   
+3. 新增了计算分类准确度的函数test.py，原理是通过对比图像的相似度，相似度最高视为同类
 
-Omniglot数据集下载地址为：    
-链接: https://pan.baidu.com/s/1pYp6vqiLLRFLn1tVeRk8ZQ 提取码: 5sa7      
+4. 新增了文件名对比函数utils/file_name_compare.py，我们以图像的文件名为类别标识（所以图像文件的命名很重要，在make_dataset.py中会自动重命名图像文件为其父目录的名字）
 
-人脸数据集下载地址为（格式还需要简单修改一下才可以使用，请参考下方“训练自己相似性比较的模型”的格式进行修改）：   
-链接: https://pan.baidu.com/s/1OvEFXTUZrvu4T5qSPkHOJw 提取码: aqhg      
+5. 新增了可视化backbone的函数viz_xx.py
 
-我一共会提供两个权重，分别是vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5和Omniglot_vgg.h5。   
-其中:  
-Omniglot_vgg.h5是Omniglot训练好的权重，可直接使用进行下面的预测步骤。  
-vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5是vgg的权重，可以用于训练其它的数据集。   
+6. 新增了可视化训练过程loss的函数draw_loss.py，training和validation的loss curve呈现在一张图上
 
-## 预测步骤
-### a、使用预训练权重
-1. 下载完库后解压，在百度网盘下载Omniglot_vgg.h5，放入model_data，运行predict.py，依次输入    
-```python
-img/Angelic_01.png
-```
-```python
-img/Angelic_02.png
-```
-### b、使用自己训练的权重
-1. 按照训练步骤训练。  
-2. 在siamese.py文件里面，在如下部分修改model_path使其对应训练好的文件；**model_path对应logs文件夹下面的权值文件**。    
-```python
-_defaults = {
-    "model_path": 'model_data/Omniglot_vgg.h5',
-    "input_shape" : (105, 105, 3),
-}
-```
-3. 运行predict.py，输入   
-```python
-img/Angelic_01.png
-```
-```python
-img/Angelic_02.png
-``` 
+7. 新增了可视化训练过程中图像增强的函数，在utils/dataloader.py中
 
-## 训练步骤
-可参考我的CSDN博客https://blog.csdn.net/weixin_44791964/article/details/107343394
-### a、训练Omniglot例子  
-Omniglot数据集中数据存放格式有三级：
-```python
-- image_background
-	- Alphabet_of_the_Magi
-		- character01
-			- 0709_01.png
-			- 0709_02.png
-			- ……
-		- character02
-		- character03
-		- ……
-	- Anglo-Saxon_Futhorc
-	- ……
-```
-训练步骤为：  
-1. 下载数据集，放在根目录下的dataset文件夹下。     
-2. 运行train.py开始训练。   
-### b、训练自己相似性比较的模型
-如果大家想要训练自己的数据集，可以将数据集按照如下格式进行摆放。    
-```python
-- image_background
-	- character01
-		- 0709_01.png
-		- 0709_02.png
-		- ……
-	- character02
-	- character03
-	- ……
-```
-相比Omniglot少了一级。每一个chapter里面放同类型的图片。    
-训练步骤为：  
-1. 按上述格式放置数据集，放在根目录下的dataset文件夹下。     
-2. 之后将train.py当中的train_own_data设置成True。  
-3. 运行train.py开始训练。 
+8. 新增了模型复杂度的计算utils/model_complexity.py，计算模型的flops
 
-## Reference
-https://github.com/tensorfreitas/Siamese-Networks-for-One-Shot-Learning
+## 使用方法
+
+### 训练
+1. 使用前先用make_dataset.py处理一下数据集，分割出query set和support set
+2. 在train.py中设置超参数，训练自己的数据集需将 train_own_data 设置为 True
+
+### 测试
+1. siamese.py中的input_shape需要与train.py中的input_shape对应上
+2. siamese.py中的model_path修改为logs目录下训练好的.h5权值文件
+3. 使用test.py进行测试
