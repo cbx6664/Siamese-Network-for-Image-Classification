@@ -12,7 +12,7 @@ from .utils_aug import center_crop, resize
 
 def load_dataset(dataset_path, train_own_data, train_ratio):
     types       = 0
-    train_path  = os.path.join(dataset_path, 'images_background')
+    train_path  = os.path.join(dataset_path)
     lines       = []
     labels      = []
     
@@ -79,7 +79,7 @@ def letterbox_image(image, size, letterbox_image):
     w, h = size
     iw, ih = image.size
     if letterbox_image:
-        '''resize image with unchanged aspect ratio using padding'''
+        '''resize query_image with unchanged aspect ratio using padding'''
         scale = min(w/iw, h/ih)
         nw = int(iw*scale)
         nh = int(ih*scale)

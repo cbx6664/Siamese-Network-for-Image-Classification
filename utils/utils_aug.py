@@ -48,7 +48,7 @@ class TranslateY(object):
 
 class Rotate(object):
     # from https://stackoverflow.com/questions/
-    # 5252170/specify-image-filling-color-when-rotating-in-python-with-pil-and-setting-expand
+    # 5252170/specify-query_image-filling-color-when-rotating-in-python-with-pil-and-setting-expand
     def __call__(self, x, magnitude):
         rot = x.convert("RGBA").rotate(magnitude * random.choice([-1, 1]))
         return Image.composite(rot, Image.new("RGBA", rot.size, (128,) * 4), rot).convert(x.mode)
@@ -103,7 +103,7 @@ class ImageNetPolicy(object):
     """ Randomly choose one of the best 24 Sub-policies on ImageNet.
         Example:
         >>> policy = ImageNetPolicy()
-        >>> transformed = policy(image)
+        >>> transformed = policy(query_image)
         Example as a PyTorch Transform:
         >>> transform = transforms.Compose([
         >>>     transforms.Resize(256),
@@ -207,11 +207,11 @@ def crop(img, i, j, h, w):
         img (PIL Image): Image to be cropped.
         i (int): i in (i,j) i.e coordinates of the upper left corner.
         j (int): j in (i,j) i.e coordinates of the upper left corner.
-        h (int): Height of the cropped image.
-        w (int): Width of the cropped image.
+        h (int): Height of the cropped query_image.
+        w (int): Width of the cropped query_image.
 
     Returns:
-        PIL Image: Cropped image.
+        PIL Image: Cropped query_image.
     """
     return img.crop((j, i, j + w, i + h))
 
@@ -222,14 +222,14 @@ def resize(img, size, interpolation=Image.BILINEAR):
         img (PIL Image): Image to be resized.
         size (sequence or int): Desired output size. If size is a sequence like
             (h, w), the output size will be matched to this. If size is an int,
-            the smaller edge of the image will be matched to this number maintaing
-            the aspect ratio. i.e, if height > width, then image will be rescaled to
+            the smaller edge of the query_image will be matched to this number maintaing
+            the aspect ratio. i.e, if height > width, then query_image will be rescaled to
             :math:`\left(\text{size} \times \frac{\text{height}}{\text{width}}, \text{size}\right)`
         interpolation (int, optional): Desired interpolation. Default is
             ``PIL.Image.BILINEAR``
 
     Returns:
-        PIL Image: Resized image.
+        PIL Image: Resized query_image.
     """
     if isinstance(size, int):
         w, h = img.size
@@ -264,13 +264,13 @@ def resized_crop(img, i, j, h, w, size, interpolation=Image.BILINEAR):
         img (PIL Image): Image to be cropped.
         i (int): i in (i,j) i.e coordinates of the upper left corner
         j (int): j in (i,j) i.e coordinates of the upper left corner
-        h (int): Height of the cropped image.
-        w (int): Width of the cropped image.
+        h (int): Height of the cropped query_image.
+        w (int): Width of the cropped query_image.
         size (sequence or int): Desired output size. Same semantics as ``resize``.
         interpolation (int, optional): Desired interpolation. Default is
             ``PIL.Image.BILINEAR``.
     Returns:
-        PIL Image: Cropped image.
+        PIL Image: Cropped query_image.
     """
     img = crop(img, i, j, h, w)
     img = resize(img, size, interpolation)
@@ -282,8 +282,8 @@ class Resize(object):
     Args:
         size (sequence or int): Desired output size. If size is a sequence like
             (h, w), output size will be matched to this. If size is an int,
-            smaller edge of the image will be matched to this number.
-            i.e, if height > width, then image will be rescaled to
+            smaller edge of the query_image will be matched to this number.
+            i.e, if height > width, then query_image will be rescaled to
             (size * height / width, size)
         interpolation (int, optional): Desired interpolation. Default is
             ``PIL.Image.BILINEAR``
@@ -299,7 +299,7 @@ class Resize(object):
             img (PIL Image): Image to be scaled.
 
         Returns:
-            PIL Image: Rescaled image.
+            PIL Image: Rescaled query_image.
         """
         return resize(img, self.size, self.interpolation)
     
@@ -321,7 +321,7 @@ class CenterCrop(object):
             img (PIL Image): Image to be cropped.
 
         Returns:
-            PIL Image: Cropped image.
+            PIL Image: Cropped query_image.
         """
         return center_crop(img, self.size)
 
@@ -385,7 +385,7 @@ class RandomResizedCrop(object):
         elif (in_ratio > max(ratio)):
             h = img.size[1]
             w = int(round(h * max(ratio)))
-        else:  # whole image
+        else:  # whole query_image
             w = img.size[0]
             h = img.size[1]
         i = (img.size[1] - h) // 2
@@ -398,7 +398,7 @@ class RandomResizedCrop(object):
             img (PIL Image): Image to be cropped and resized.
 
         Returns:
-            PIL Image: Randomly cropped and resized image.
+            PIL Image: Randomly cropped and resized query_image.
         """
         i, j, h, w = self.get_params(img, self.scale, self.ratio)
         return resized_crop(img, i, j, h, w, self.size, self.interpolation)
